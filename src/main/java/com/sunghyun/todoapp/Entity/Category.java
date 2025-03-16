@@ -1,4 +1,4 @@
-package com.sunghyun.todoapp.domain;
+package com.sunghyun.todoapp.Entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;

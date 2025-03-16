@@ -1,4 +1,4 @@
-package com.sunghyun.todoapp.domain;
+package com.sunghyun.todoapp.Entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -10,7 +10,7 @@ import java.util.List;
 @Entity
 @Getter @Setter
 public class User {
-    @Id @GeneratedValue
+    @Id
     @Column(name = "user_id")
     private Long id;
     private String password;
