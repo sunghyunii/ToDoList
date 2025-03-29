@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class CreateUserDto {
-    private Long id;
+    private String id;
     private String password;
     private String email;
     private String nickname;

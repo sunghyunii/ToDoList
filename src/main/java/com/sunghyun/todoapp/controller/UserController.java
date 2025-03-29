@@ -26,6 +26,6 @@ public class UserController {
         }
 
         userService.join(userDto);
-        return ResponseEntity.ok("회원가입 성공");
+        return ResponseEntity.ok(userDto);
     }
 }

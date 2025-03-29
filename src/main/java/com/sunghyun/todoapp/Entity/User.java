@@ -12,7 +12,7 @@ import java.util.List;
 public class User {
     @Id
     @Column(name = "user_id")
-    private Long id;
+    private String id;
     private String password;
     private String email;
     private String nickname;
