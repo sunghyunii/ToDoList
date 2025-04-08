@@ -1,5 +1,6 @@
 package com.sunghyun.todoapp.Dto;
 
+import com.sunghyun.todoapp.Entity.Role;
 import lombok.Data;
 
 @Data

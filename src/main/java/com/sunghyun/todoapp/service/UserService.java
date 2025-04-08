@@ -14,7 +14,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
-    //회원가입
+
+    /** 회원가입 */
     @Transactional
     public User join(CreateUserDto userDto){
         User user = new User();

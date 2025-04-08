@@ -23,4 +23,17 @@ public class User {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recommendation_id")
     private Recommendation rec;
+    @Enumerated(EnumType.STRING)
+    private Role role = Role.USER;
+
+    /** jwt 토큰 추가 */
+    @Column(length = 1000)
+    private String refreshToken;
+
+    public void updateRefreshToken(String refreshToken){
+        this.refreshToken = refreshToken;
+    }
+    public void destroyRefreshToken(){
+        this.refreshToken = null;
+    }
 }
