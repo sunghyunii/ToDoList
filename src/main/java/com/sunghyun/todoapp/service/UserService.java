@@ -4,6 +4,7 @@ import com.sunghyun.todoapp.Dto.CreateUserDto;
 import com.sunghyun.todoapp.Entity.User;
 import com.sunghyun.todoapp.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,13 +15,14 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     /** 회원가입 */
     @Transactional
     public User join(CreateUserDto userDto){
         User user = new User();
         user.setId(userDto.getId());
-        user.setPassword(userDto.getPassword());
+        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
         user.setEmail(userDto.getEmail());
         user.setNickname(userDto.getNickname());
         user.setImage(userDto.getImage());
@@ -69,6 +71,10 @@ public class UserService {
         if(password.length() < 8){
             throw new IllegalArgumentException("비밀번호는 최소 8자 이상이어야 합니다.");
         }
+    }
+    /**회원정보 조회*/
+    public void read(){
+
     }
 
 }

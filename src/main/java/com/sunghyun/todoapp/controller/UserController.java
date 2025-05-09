@@ -1,6 +1,7 @@
 package com.sunghyun.todoapp.controller;
 
 import com.sunghyun.todoapp.Dto.CreateUserDto;
+import com.sunghyun.todoapp.Dto.LoginDto;
 import com.sunghyun.todoapp.Entity.User;
 import com.sunghyun.todoapp.service.UserService;
 import jakarta.validation.Valid;
@@ -27,5 +28,15 @@ public class UserController {
 
         userService.join(userDto);
         return ResponseEntity.ok(userDto);
+    }
+    @PostMapping("/api/user/login")
+    public void login(@RequestBody @Valid LoginDto loginDto){
+
+    }
+
+    // 사용자 정보 조회
+    @GetMapping("/api/user/{id}")
+    public ResponseEntity<?> read(){
+
     }
 }

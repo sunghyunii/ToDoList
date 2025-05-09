@@ -1,9 +1,13 @@
 package com.sunghyun.todoapp.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sunghyun.todoapp.repository.UserRepository;
 import com.sunghyun.todoapp.security.filter.JsonUsernamePasswordAuthenticationFilter;
+import com.sunghyun.todoapp.security.filter.JwtAuthenticationProcessingFilter;
 import com.sunghyun.todoapp.security.model.LoginFailureHandler;
 import com.sunghyun.todoapp.security.model.LoginSuccessJWTProvideHandler;
+import com.sunghyun.todoapp.service.JwtService;
+import jakarta.servlet.Filter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +17,7 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.CorsConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -20,6 +25,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
+import org.springframework.web.cors.CorsConfiguration;
 
 @Configuration // 스프링 설정 클래스임을 선언
 @EnableWebSecurity //웹 보안 기능 활성화
@@ -27,13 +34,24 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
     private final UserDetailsService userDetailsService; // 사용자 정보 조회 서비스
     private final ObjectMapper objectMapper; // JSON 변환용(주로 JWT)
+    private final UserRepository userRepository;
+    private final JwtService jwtService;
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
+        http.cors(cors -> cors.configurationSource(request ->{
+            var corsConfig = new CorsConfiguration();
+            corsConfig.addAllowedOrigin("*");
+            corsConfig.addAllowedMethod("*");
+            corsConfig.addAllowedHeader("*");
+            corsConfig.addExposedHeader("Authorization");
+            corsConfig.addExposedHeader("Authorization-refresh");
+            return corsConfig;
+        }));
         http    .csrf(AbstractHttpConfigurer::disable) // CSRF 보호 비활성화(API 서비스에 적합)
                 .httpBasic(AbstractHttpConfigurer::disable) // HTTP 기본 인증 비활성화
                 .formLogin(AbstractHttpConfigurer::disable) // 폼 로그인 비활성화
                 .authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers("/signup", "/","/login").permitAll()
+                        .requestMatchers("/api/user/login", "/api/user/register").permitAll()
                 .anyRequest().authenticated() // 그 외 모든 요청 인증 필요
                 )
                 .logout(logout -> logout
@@ -42,8 +60,13 @@ public class SecurityConfig {
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)); // 세션 사용 안 함(주로 JWT 사용시)
+        http
+                .addFilterAfter(jsonUsernamePasswordLoginFilter(), LogoutFilter.class) // jsonUsernamePasswordLoginFilter 를 logoutFilter 다음에 실행되도록 추가
+                .addFilterAfter(jwtAuthenticationProcessingFilter(), JsonUsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
+
     // 데이터베이스 기반 인증 처리 담당
     @Bean
     public DaoAuthenticationProvider daoAuthenticationProvider() throws Exception{
@@ -67,7 +90,7 @@ public class SecurityConfig {
     }
     @Bean
     public LoginSuccessJWTProvideHandler loginSuccessJWTProvideHandler(){
-        return new LoginSuccessJWTProvideHandler();
+        return new LoginSuccessJWTProvideHandler(jwtService, userRepository);
     }
     @Bean
     public LoginFailureHandler loginFailureHandler(){
@@ -81,6 +104,13 @@ public class SecurityConfig {
         jsonUsernamePasswordLoginFilter.setAuthenticationManager(authenticationManager());
         jsonUsernamePasswordLoginFilter.setAuthenticationSuccessHandler(loginSuccessJWTProvideHandler());
         jsonUsernamePasswordLoginFilter.setAuthenticationFailureHandler(loginFailureHandler());
+        jsonUsernamePasswordLoginFilter.setFilterProcessesUrl("/api/user/login");
+        return jsonUsernamePasswordLoginFilter;
+    }
+    @Bean
+    public JwtAuthenticationProcessingFilter jwtAuthenticationProcessingFilter() {
+        JwtAuthenticationProcessingFilter jsonUsernamePasswordLoginFilter = new JwtAuthenticationProcessingFilter(jwtService, userRepository);
+
         return jsonUsernamePasswordLoginFilter;
     }
 }
