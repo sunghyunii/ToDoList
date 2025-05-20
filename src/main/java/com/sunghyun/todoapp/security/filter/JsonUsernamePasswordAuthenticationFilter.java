@@ -30,13 +30,13 @@ public class JsonUsernamePasswordAuthenticationFilter extends AbstractAuthentica
     private static final AntPathRequestMatcher DEFAULT_LOGIN_PATH_REQUEST_MATCHER =
             new AntPathRequestMatcher(DEFAULT_LOGIN_REQUEST_URL, HTTP_METHOD);
     public JsonUsernamePasswordAuthenticationFilter(ObjectMapper objectMapper){
-        super(DEFAULT_LOGIN_PATH_REQUEST_MATCHER);
+        super("/api/user/login");
         this.objectMapper = objectMapper;
     }
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
         // 1. Content-Type 검사
-        if(request.getContentType() == null || !request.getContentType().equals(CONTENT_TYPE)){
+        if(request.getContentType() == null || !request.getContentType().startsWith(CONTENT_TYPE)){
             throw new AuthenticationServiceException("Authentication Content-Type not support: " + request.getContentType());
         }
         // 2. JSON 데이터 읽기

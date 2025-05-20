@@ -25,6 +25,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.web.cors.CorsConfiguration;
 
@@ -52,7 +53,8 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable) // 폼 로그인 비활성화
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers("/api/user/login", "/api/user/register").permitAll()
-                .anyRequest().authenticated() // 그 외 모든 요청 인증 필요
+                        .requestMatchers("/api/user").authenticated()
+                        .anyRequest().permitAll() // 그 외 모든 요청 인증 필요
                 )
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login") // 로그아웃 후 이동 페이지
@@ -62,7 +64,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)); // 세션 사용 안 함(주로 JWT 사용시)
         http
                 .addFilterAfter(jsonUsernamePasswordLoginFilter(), LogoutFilter.class) // jsonUsernamePasswordLoginFilter 를 logoutFilter 다음에 실행되도록 추가
-                .addFilterAfter(jwtAuthenticationProcessingFilter(), JsonUsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationProcessingFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,7 +40,7 @@ public class JwtServiceImpl implements JwtService {
     private static final String ACCESS_TOKEN_SUBJECT = "AccessToken";
     private static final String REFRESH_TOKEN_SUBJECT = "RefreshToken";
     private static final String USERNAME_CLAIM = "id";
-    private static final String BEARER = "Bearer"; // 토큰 앞에 붙는 "Bearer " 문자열
+    private static final String BEARER = "Bearer "; // 토큰 앞에 붙는 "Bearer " 문자열
 
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
@@ -47,9 +48,12 @@ public class JwtServiceImpl implements JwtService {
     // JWT 생성 매서드
     @Override
     public String createAccessToken(String id) {
+        System.out.println("=== createAccessToken 호출 ===");
+        log.info("== createAccessToken() 사용 중인 secret: {}", secret);
         return JWT.create()
                 .withSubject(ACCESS_TOKEN_SUBJECT)
-                .withExpiresAt(new Date(System.currentTimeMillis() + refreshTokenValidityInSeconds * 1000))
+                .withExpiresAt(new Date(System.currentTimeMillis() + accessTokenValidityInSeconds * 1000))
+                .withClaim("id", id)
                 .sign(Algorithm.HMAC512(secret));
     }
 
@@ -58,7 +62,7 @@ public class JwtServiceImpl implements JwtService {
     public String createRefreshToken() {
         return JWT.create()
                 .withSubject(REFRESH_TOKEN_SUBJECT)
-                .withExpiresAt(new Date(System.currentTimeMillis() + accessTokenValidityInSeconds * 1000))
+                .withExpiresAt(new Date(System.currentTimeMillis() + refreshTokenValidityInSeconds * 1000))
                 .sign(Algorithm.HMAC512(secret));
     }
 
@@ -85,8 +89,16 @@ public class JwtServiceImpl implements JwtService {
     public void sendAccessToken(HttpServletResponse response, String accessToken) {
         response.setStatus(HttpServletResponse.SC_OK);
         setAccessTokenHeader(response, accessToken);
-        Map<String, String> tokenMap = new HashMap<>();
-        tokenMap.put(ACCESS_TOKEN_SUBJECT, accessToken);
+        response.setContentType("application/json");
+        try{
+            Map<String, String> tokenMap = new HashMap<>();
+            tokenMap.put(ACCESS_TOKEN_SUBJECT, accessToken);
+            objectMapper.writeValue(response.getWriter(), tokenMap);
+
+        }catch (IOException e){
+            log.error("토큰 응답 전송 실패", e);
+        }
+
     }
 
     // 요청에서 토큰 추출
@@ -95,6 +107,9 @@ public class JwtServiceImpl implements JwtService {
     // Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
     @Override
     public Optional<String> extractAccessToken(HttpServletRequest request) {
+        String header = request.getHeader("Authorization");
+        System.out.println("== 클라이언트가 보낸 Authorization-refresh: " + header);
+
         return Optional.ofNullable(request.getHeader(accessHeader)).filter(
                 accessToken -> accessToken.startsWith(BEARER)
         ).map(accessToken -> accessToken.replace(BEARER, "")); // "Bearer" 접두사 제거
@@ -102,10 +117,13 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public Optional<String> extractRefreshToken(HttpServletRequest request) {
-        return Optional.ofNullable(request.getHeader(accessHeader)).filter(
-                accessToken -> accessToken.startsWith(BEARER)
-        ).map(accessToken -> accessToken.replace(BEARER, "")); // "Bearer" 접두사 제거
+        String header = request.getHeader("Authorization-Refresh");
+        System.out.println("Authorization-Refresh 헤더 값: " + header);
+        return Optional.ofNullable(request.getHeader(header)).filter(
+                refreshToken -> refreshToken.startsWith(BEARER)
+        ).map(refreshToken -> refreshToken.replace(BEARER, "")); // "Bearer" 접두사 제거
     }
+
 
     // 토큰 검증 및 아이디 추출
     @Override
@@ -115,6 +133,7 @@ public class JwtServiceImpl implements JwtService {
         // .verify(accessToken) jwt 유효성 검증(서명이 유효한지, 토큰 만료됐는지, 클레임 조건 충족 확인)
         // .getClaim(USERNAME_CLAIM).asString()) 토큰 내부 페이로드에 지정된 키에 해당하는 값을 찾아 문자열로 변환
         try{
+            log.info("== extractId() 사용 중인 secret: {}", secret);
             return Optional.ofNullable(
                 JWT.require(Algorithm.HMAC512(secret)).build().verify(accessToken)
                         .getClaim(USERNAME_CLAIM).asString());
@@ -140,7 +159,7 @@ public class JwtServiceImpl implements JwtService {
             JWT.require(Algorithm.HMAC512(secret)).build().verify(token);
             return true;
     }catch (Exception e){
-            log.error("유효하지 않은 token 입니다", e.getMessage());
+            log.error("유효하지 않은 token 입니다:{}", e.getMessage());
             return false;
         }
     }

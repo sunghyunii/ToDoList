@@ -8,7 +8,9 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
@@ -17,26 +19,35 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+
 import java.io.IOException;
+import java.util.Optional;
 
 
 // 사용자 요청이 들어올 때마다 토큰을 확인하고 인증 처리를 담당한다
 // 로그인 요청은 처리하지 않고 통과시킨다
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserRepository userRepository;
     private GrantedAuthoritiesMapper authoritiesMapper = new NullAuthoritiesMapper();
-    private final String NO_CHECK_URL = "/login";
+    private final String NO_CHECK_URL = "/user/login";
 
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        System.out.println("jwtAuthenticationProcessingFilter 실행됨");
         // /login 경로로 오는 요청은 이 필터를 건너뛰고 다음 필터로
         if(request.getRequestURI().equals(NO_CHECK_URL)){
             filterChain.doFilter(request, response);
             return;
         }
+        Optional<String> refreshTokenOpt = jwtService.extractRefreshToken(request);
+        refreshTokenOpt.ifPresentOrElse(
+                token -> log.debug("추출된 refreshToken: {}", token),
+                () -> log.warn("refreshToken 헤더에서 추출 실패")
+        );
 
         // 모든 요청에서 refresh token 을 찾는 이유
         // 토큰 갱신 로직을 간소화, 서버가 자동으로 토큰 만료를 처리
@@ -47,22 +58,24 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
                 .orElse(null);
         // refresh Token 있으면 Access Token 발급
         if(refreshToken != null){
-            checkRefreshTokenAndReIssueAccessToken(response, refreshToken);
+            checkRefreshTokenAndReIssueAccessToken(response, refreshToken, request, filterChain);
+            // access token 만 발급하고 끝내지 않고 체인을 계속 진행 시킨다
+            filterChain.doFilter(request,response);
             return;
         }
         checkAccessTokenAndAuthentication(request, response, filterChain);
     }
     // Access Token을 추출하고 유효할 때 spring security에 인증 정보 저장
     private void checkAccessTokenAndAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        jwtService.extractAccessToken(request).filter(jwtService::isTokenValid).ifPresent(
-                accessToken -> jwtService.extractId(accessToken).ifPresent(
-                        id -> userRepository.findById(id).ifPresent(
-                                user -> saveAuthentication(user)
-                        )
-                )
-        );
-        filterChain.doFilter(request,response);
+        String token = jwtService.extractAccessToken(request).orElse(null);
 
+        if (token != null && jwtService.isTokenValid(token)) {
+            jwtService.extractId(token).ifPresent(id ->
+                    userRepository.findById(id).ifPresent(this::saveAuthentication)
+            );
+        }
+        // 인증을 넣었든 아니든, 필터 체인은 마지막에 호출
+        filterChain.doFilter(request, response);
     }
     private void saveAuthentication(User user){
         UserDetailsImpl userDetails = new UserDetailsImpl(user);
@@ -73,11 +86,23 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(authentication);
         SecurityContextHolder.setContext(context);
+        System.out.println("== 사용자 인증 저장: " + user.getEmail());
     }
 
-    private void checkRefreshTokenAndReIssueAccessToken(HttpServletResponse response, String refreshToken) {
-        userRepository.findByRefreshToken(refreshToken).ifPresent(
-                user -> jwtService.sendAccessToken(response, jwtService.createAccessToken(user.getId()))
+    private void checkRefreshTokenAndReIssueAccessToken(HttpServletResponse response, String refreshToken,  HttpServletRequest request, FilterChain filterChain) {
+
+        userRepository.findByRefreshToken(refreshToken).ifPresentOrElse(
+                user -> {
+                    String newAccessToken = jwtService.createAccessToken(user.getId());
+                    jwtService.sendAccessToken(response, newAccessToken);
+                    saveAuthentication(user);
+                    try {
+                        filterChain.doFilter(request, response);
+                    } catch (Exception e) {
+                        log.error("filterChain.doFilter 실패", e);
+                    }
+                },
+                () -> log.warn("유효하지 않은 refreshToken 요청")
         );
 
     }

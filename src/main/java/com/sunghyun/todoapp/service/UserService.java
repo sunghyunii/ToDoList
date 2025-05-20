@@ -1,9 +1,11 @@
 package com.sunghyun.todoapp.service;
 
 import com.sunghyun.todoapp.Dto.CreateUserDto;
+import com.sunghyun.todoapp.Dto.UserResponseDto;
 import com.sunghyun.todoapp.Entity.User;
 import com.sunghyun.todoapp.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,9 +74,24 @@ public class UserService {
             throw new IllegalArgumentException("비밀번호는 최소 8자 이상이어야 합니다.");
         }
     }
+    @Transactional
+    public void updateRefreshToken(String userId, String refreshToken){
+        User user = userRepository.findById(userId)
+                .orElseThrow(()-> new UsernameNotFoundException("User not found"));
+        user.updateRefreshToken(refreshToken);
+        userRepository.save(user);
+    }
     /**회원정보 조회*/
-    public void read(){
-
+    public UserResponseDto getUserInfo(String userId){
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+        return new UserResponseDto(
+                user.getId(),
+                user.getEmail(),
+                user.getNickname(),
+                user.getImage(),
+                user.getIntroduction()
+        );
     }
 
 }
