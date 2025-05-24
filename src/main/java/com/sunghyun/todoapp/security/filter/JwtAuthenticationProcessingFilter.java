@@ -38,7 +38,7 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         System.out.println("jwtAuthenticationProcessingFilter 실행됨");
-        // /login 경로로 오는 요청은 이 필터를 건너뛰고 다음 필터로
+        // / 1. login 경로로 오는 요청은 이 필터를 건너뛰고 다음 필터로
         if(request.getRequestURI().equals(NO_CHECK_URL)){
             filterChain.doFilter(request, response);
             return;
@@ -51,24 +51,26 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
 
         // 모든 요청에서 refresh token 을 찾는 이유
         // 토큰 갱신 로직을 간소화, 서버가 자동으로 토큰 만료를 처리
-        // refresh Token 추출 후 유효한지 검사
+        // 2. refresh Token 추출 후 유효한지 검사
         String refreshToken = jwtService
                 .extractRefreshToken(request)
                 .filter(jwtService::isTokenValid)
                 .orElse(null);
-        // refresh Token 있으면 Access Token 발급
+        // 2-1. refresh Token 있으면 Access Token 발급
         if(refreshToken != null){
             checkRefreshTokenAndReIssueAccessToken(response, refreshToken, request, filterChain);
             // access token 만 발급하고 끝내지 않고 체인을 계속 진행 시킨다
             filterChain.doFilter(request,response);
             return;
         }
+        // 3. RefreshToken 없거나 유효하지 않으면 AccessToken 확인
         checkAccessTokenAndAuthentication(request, response, filterChain);
     }
     // Access Token을 추출하고 유효할 때 spring security에 인증 정보 저장
     private void checkAccessTokenAndAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String token = jwtService.extractAccessToken(request).orElse(null);
 
+        // 토큰이 유효하면 사용자 id 추출해서 인증 객체(SecurityContext) 에 저장
         if (token != null && jwtService.isTokenValid(token)) {
             jwtService.extractId(token).ifPresent(id ->
                     userRepository.findById(id).ifPresent(this::saveAuthentication)

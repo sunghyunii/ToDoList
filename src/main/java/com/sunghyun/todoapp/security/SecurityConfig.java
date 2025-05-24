@@ -37,23 +37,24 @@ public class SecurityConfig {
     private final ObjectMapper objectMapper; // JSON 변환용(주로 JWT)
     private final UserRepository userRepository;
     private final JwtService jwtService;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
         http.cors(cors -> cors.configurationSource(request ->{
             var corsConfig = new CorsConfiguration();
-            corsConfig.addAllowedOrigin("*");
-            corsConfig.addAllowedMethod("*");
-            corsConfig.addAllowedHeader("*");
-            corsConfig.addExposedHeader("Authorization");
-            corsConfig.addExposedHeader("Authorization-refresh");
+            corsConfig.addAllowedOrigin("*"); // 모든 origin 허용 (보안상 실제 서비스에서는 도메인 지정)
+            corsConfig.addAllowedMethod("*"); // get, post, put, delete 등 모든 http 매서드 허용
+            corsConfig.addAllowedHeader("*"); // 모든 요청 헤더 허용
+            corsConfig.addExposedHeader("Authorization"); // 응답에서 Authorization 헤더 노출
+            corsConfig.addExposedHeader("Authorization-refresh"); // 응답에서 Authorization-refresh 헤더 노출
             return corsConfig;
         }));
         http    .csrf(AbstractHttpConfigurer::disable) // CSRF 보호 비활성화(API 서비스에 적합)
                 .httpBasic(AbstractHttpConfigurer::disable) // HTTP 기본 인증 비활성화
                 .formLogin(AbstractHttpConfigurer::disable) // 폼 로그인 비활성화
                 .authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers("/api/user/login", "/api/user/register").permitAll()
-                        .requestMatchers("/api/user").authenticated()
+                        .requestMatchers("/api/login", "/api/register").permitAll()
+                        .requestMatchers("/api/user/**").authenticated()
                         .anyRequest().permitAll() // 그 외 모든 요청 인증 필요
                 )
                 .logout(logout -> logout
@@ -65,6 +66,9 @@ public class SecurityConfig {
         http
                 .addFilterAfter(jsonUsernamePasswordLoginFilter(), LogoutFilter.class) // jsonUsernamePasswordLoginFilter 를 logoutFilter 다음에 실행되도록 추가
                 .addFilterBefore(jwtAuthenticationProcessingFilter(), UsernamePasswordAuthenticationFilter.class);
+        http
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(customAuthenticationEntryPoint));
 
         return http.build();
     }
@@ -106,7 +110,7 @@ public class SecurityConfig {
         jsonUsernamePasswordLoginFilter.setAuthenticationManager(authenticationManager());
         jsonUsernamePasswordLoginFilter.setAuthenticationSuccessHandler(loginSuccessJWTProvideHandler());
         jsonUsernamePasswordLoginFilter.setAuthenticationFailureHandler(loginFailureHandler());
-        jsonUsernamePasswordLoginFilter.setFilterProcessesUrl("/api/user/login");
+        jsonUsernamePasswordLoginFilter.setFilterProcessesUrl("/api/login");
         return jsonUsernamePasswordLoginFilter;
     }
     @Bean
@@ -115,4 +119,5 @@ public class SecurityConfig {
 
         return jsonUsernamePasswordLoginFilter;
     }
+
 }

@@ -28,10 +28,17 @@ public class LoginSuccessJWTProvideHandler extends SimpleUrlAuthenticationSucces
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
+        // 1. 사용자 ID 추출
         String id = extractId(authentication);
+
+        // 2. AccessToken / RefreshToken 생성
         String accessToken = jwtService.createAccessToken(id);
         String refreshToken = jwtService.createRefreshToken();
+
+        // 3. 토큰 클라이언트에 전송
         jwtService.sendAccessAndRefreshToken(response, accessToken, refreshToken);
+
+        // 4. DB 에 RefreshToken 저장
         userRepository.findById(id).ifPresent(
                 user -> user.updateRefreshToken(refreshToken)
         );
@@ -39,21 +46,16 @@ public class LoginSuccessJWTProvideHandler extends SimpleUrlAuthenticationSucces
         System.out.println("로그인 성공, JWT 발급. username: " + id);
         System.out.println("AccessToken 발급. AccessToken: " + accessToken);
         System.out.println("RefreshToken 발급. RefreshToken: " + refreshToken);
-        // 헤더에 토큰 추가
+
+        // 5. 응답 헤더 및 바디에 토큰 추가
         response.setHeader("Authorization", "Bearer " + accessToken);
         response.setHeader("Authorization-refresh", "Bearer " + refreshToken);
-        // body 에 추가
+        // JSON 형태로 body 에 토큰을 담아서 응답
         Map<String, String> tokens = new HashMap<>();
         tokens.put("accessToken", accessToken);
         tokens.put("refreshToken", refreshToken);
 
         response.setContentType("application/json");
-        //String jsonResponse = String.format(
-        //        "{\"success\":true,\"accessToken\":\"%s\",\"refreshToken\":\"%s\"}",
-        //        accessToken, refreshToken
-        //);
-
-        //response.getWriter().write("jsonResponse");
         response.getWriter().write(new ObjectMapper().writeValueAsString(tokens));
         response.getWriter().flush();
     }

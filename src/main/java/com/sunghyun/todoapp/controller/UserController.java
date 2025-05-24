@@ -2,6 +2,7 @@ package com.sunghyun.todoapp.controller;
 
 import com.sunghyun.todoapp.Dto.CreateUserDto;
 import com.sunghyun.todoapp.Dto.LoginDto;
+import com.sunghyun.todoapp.Dto.UpdateUserDto;
 import com.sunghyun.todoapp.Dto.UserResponseDto;
 import com.sunghyun.todoapp.Entity.User;
 import com.sunghyun.todoapp.service.UserService;
@@ -11,33 +12,30 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.nio.file.AccessDeniedException;
 
 @RestController
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
-    @GetMapping("/api/user/register")
+    @GetMapping("/api/register")
     public String createForm(){
         return "";
     }
-    @PostMapping("/api/user/register")
+    @PostMapping("/api/register")
     public ResponseEntity<?> create(@RequestBody @Valid CreateUserDto userDto){
         if(userDto.getId() == null){
             return ResponseEntity.badRequest().body("Id 값이 필요합니다");
         }
-
         userService.join(userDto);
         return ResponseEntity.ok(userDto);
     }
-    @PostMapping("/api/user/login")
+    @PostMapping("/api/login")
     public void login(@RequestBody @Valid LoginDto loginDto){
 
     }
-
     // 사용자 정보 조회
     @GetMapping("/api/user")
     public ResponseEntity<?> getMyInfo(@AuthenticationPrincipal UserDetails userDetails){
@@ -50,5 +48,17 @@ public class UserController {
         UserResponseDto userInfo = userService.getUserInfo(userId);
         System.out.println(">> 응답 내용: " + userInfo);
         return ResponseEntity.ok(userInfo);
+    }
+
+    // 사용자 정보 수정
+    @PutMapping("/api/user/update")
+    public ResponseEntity<?> updateUserInfo(@RequestBody @Valid UpdateUserDto userDto,
+                                            @AuthenticationPrincipal UserDetails userDetails) throws AccessDeniedException {
+        if(userDetails == null){
+            throw new AccessDeniedException("로그인이 필요합니다");
+        }
+        String userId = userDetails.getUsername();
+        UserResponseDto userInfo = userService.updateUserInfo(userId,userDto);
+        return ResponseEntity.ok(userDto);
     }
 }
