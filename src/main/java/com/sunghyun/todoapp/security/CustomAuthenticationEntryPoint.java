@@ -27,7 +27,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
         response.setContentType("application/json;charset=UTF-8");
 
-        ErrorResponse error = new ErrorResponse("로그인이 필요합니다.");
+        ErrorResponse error = new ErrorResponse("인증 정보가 유효하지 않습니다.");
         response.getWriter().write(objectMapper.writeValueAsString(error));
     }
 }
