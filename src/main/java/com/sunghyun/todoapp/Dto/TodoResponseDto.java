@@ -8,20 +8,20 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class TodoDto {
+public class TodoResponseDto {
+    private Long todoId;
     private String content;
     private Status status;
     private LocalDate date;
     private Category category;
-    public TodoDto(Todo todo){
+    public TodoResponseDto(Todo todo){
+        this.todoId = todo.getId();
         this.content = todo.getContent();
         this.status = todo.getStatus();
         this.date = todo.getDate();
         this.category = todo.getCategory();
     }
 }
-

@@ -20,6 +20,8 @@ public class User {
     private String introduction;
     @OneToMany(mappedBy = "user")
     private List<Todo> todo = new ArrayList();
+    @OneToMany(mappedBy = "user")
+    private List<Category> categories = new ArrayList();
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recommendation_id")
     private Recommendation rec;

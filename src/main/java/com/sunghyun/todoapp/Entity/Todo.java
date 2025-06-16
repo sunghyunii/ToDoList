@@ -22,4 +22,8 @@ public class Todo {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="category_id", nullable = true)
     private Category category;
+
+    public boolean isOwnedBy(String userId) {
+        return this.user != null && this.user.getId().equals(userId);
+    }
 }

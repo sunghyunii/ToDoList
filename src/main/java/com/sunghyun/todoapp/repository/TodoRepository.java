@@ -9,4 +9,6 @@ import java.util.Optional;
 
 public interface TodoRepository extends JpaRepository<Todo, Long> {
     List<Todo> findByDate(LocalDate date);
+
+    List<Todo> findByUserIdAndDate(String userId, LocalDate date);
 }
