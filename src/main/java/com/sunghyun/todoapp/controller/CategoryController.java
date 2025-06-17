@@ -1,8 +1,8 @@
 package com.sunghyun.todoapp.controller;
 
 import com.sunghyun.todoapp.Dto.CategoryRequestDto;
+import com.sunghyun.todoapp.Dto.DeleteCategoryDto;
 import com.sunghyun.todoapp.Dto.CategoryResponseDto;
-import com.sunghyun.todoapp.repository.CategoryRepository;
 import com.sunghyun.todoapp.service.CategoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +40,14 @@ public class CategoryController {
                                             @AuthenticationPrincipal UserDetails userDetails){
         String userId = userDetails.getUsername();
         CategoryResponseDto responseDto = categoryService.updateCategory(categoryDto, categoryId, userId);
+        return ResponseEntity.ok(responseDto);
+    }
+    // 카테고리 삭제
+    @DeleteMapping("/api/user/category/{categoryId}")
+    public ResponseEntity<?> deleteCategory(@PathVariable Long categoryId,
+                                            @AuthenticationPrincipal UserDetails userDetails){
+        String userId = userDetails.getUsername();
+        DeleteCategoryDto responseDto = categoryService.deleteCategory(categoryId, userId);
         return ResponseEntity.ok(responseDto);
     }
 }

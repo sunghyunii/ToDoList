@@ -90,7 +90,7 @@ public class TodoService {
         Todo todo = todoRepository.findById(todoId)
                 .orElseThrow(()->new EntityNotFoundException("해당 할 일이 존재하지 않습니다."));
         if(!todo.isOwnedBy(userId)){
-            throw new AccessDeniedException("해당 할 일을 삭제할 권한이 없습니다");
+            throw new AccessDeniedException("삭제 권한이 없습니다");
         }
         todoRepository.deleteById(todoId);
         return new DeleteTodoDto(todoId, "할 일이 삭제되었습니다");

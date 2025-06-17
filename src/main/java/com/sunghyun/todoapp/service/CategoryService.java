@@ -1,6 +1,7 @@
 package com.sunghyun.todoapp.service;
 
 import com.sunghyun.todoapp.Dto.CategoryRequestDto;
+import com.sunghyun.todoapp.Dto.DeleteCategoryDto;
 import com.sunghyun.todoapp.Dto.CategoryResponseDto;
 import com.sunghyun.todoapp.Entity.Category;
 import com.sunghyun.todoapp.Entity.User;
@@ -62,5 +63,16 @@ public class CategoryService {
         category.setName(name.trim());
 
         return new CategoryResponseDto(category);
+    }
+
+    public DeleteCategoryDto deleteCategory(Long categoryId, String userId) {
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 카테고리가 존재하지 않습니다."));
+        if(!category.isOwnedBy(userId)){
+            throw new AccessDeniedException("삭제 권한이 없습니다");
+        }
+        categoryRepository.deleteById(categoryId);
+        return new DeleteCategoryDto(categoryId, "할 일이 삭제되었습니다.");
+
     }
 }
