@@ -19,4 +19,8 @@ public class Category {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
+    public boolean isOwnedBy(String userId) {
+        return user != null && user.getId().equals(userId);
+    }
 }

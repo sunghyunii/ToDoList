@@ -6,9 +6,14 @@ import com.sunghyun.todoapp.Entity.Category;
 import com.sunghyun.todoapp.Entity.User;
 import com.sunghyun.todoapp.repository.CategoryRepository;
 import com.sunghyun.todoapp.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.access.AccessDeniedException;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -16,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
+    @Transactional
     public CategoryResponseDto createCategory(CategoryRequestDto dto, String userId) {
         if(dto.getName() == null || dto.getName().trim().isEmpty()){
             throw new IllegalArgumentException("카테고리 이름을 입력하세요.");
@@ -31,6 +37,30 @@ public class CategoryService {
         category.setName(dto.getName());
         category.setUser(user);
         categoryRepository.save(category);
+        return new CategoryResponseDto(category);
+    }
+
+    public List<CategoryResponseDto> readCategory(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
+
+        return categoryRepository.findByUser(user).stream().
+                map(CategoryResponseDto::new).
+                collect(Collectors.toList());
+    }
+    @Transactional
+    public CategoryResponseDto updateCategory(CategoryRequestDto categoryDto, Long categoryId, String userId) {
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 카테고리가 존재하지 않습니다."));
+        if(!category.isOwnedBy(userId)){
+            throw new AccessDeniedException("수정 권한이 없습니다");
+        }
+        String name = categoryDto.getName();
+        if(name == null || name.trim().isEmpty()){
+            throw new IllegalArgumentException("카테고리 이름을 입력하세요.");
+        }
+        category.setName(name.trim());
+
         return new CategoryResponseDto(category);
     }
 }
