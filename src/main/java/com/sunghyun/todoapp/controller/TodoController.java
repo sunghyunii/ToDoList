@@ -1,13 +1,16 @@
 package com.sunghyun.todoapp.controller;
 
 import com.sunghyun.todoapp.Dto.DeleteTodoDto;
+import com.sunghyun.todoapp.Dto.TodoRecommendationDto;
 import com.sunghyun.todoapp.Dto.TodoRequestDto;
 
 import com.sunghyun.todoapp.Dto.TodoResponseDto;
+import com.sunghyun.todoapp.service.RecommendService;
 import com.sunghyun.todoapp.service.TodoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -16,11 +19,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
 public class TodoController {
     private final TodoService todoService;
+    private final RecommendService recommendService;
     // 할 일 추가
     @PostMapping("/api/user/todo")
     public ResponseEntity<?> create(@RequestBody @Valid TodoRequestDto dto,
@@ -55,4 +60,13 @@ public class TodoController {
         DeleteTodoDto dto = todoService.deleteTodo(todoId, userId);
         return ResponseEntity.ok(dto);
     }
+    // 할 일 추천
+    @GetMapping("/api/user/todo/recommend")
+    public ResponseEntity<?> recommendTodo(@AuthenticationPrincipal UserDetails userDetails){
+        String userId = userDetails.getUsername();
+        String prompt = recommendService.makePrompt(userId);
+        String todo = recommendService.getTodoRecommendation(prompt);
+        return ResponseEntity.ok(new TodoRecommendationDto(todo));
+    }
+
 }

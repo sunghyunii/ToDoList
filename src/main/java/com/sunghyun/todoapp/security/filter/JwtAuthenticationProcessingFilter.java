@@ -59,8 +59,6 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
         // 2-1. refresh Token 있으면 Access Token 발급
         if(refreshToken != null){
             checkRefreshTokenAndReIssueAccessToken(response, refreshToken, request, filterChain);
-            // access token 만 발급하고 끝내지 않고 체인을 계속 진행 시킨다
-            filterChain.doFilter(request,response);
             return;
         }
         // 3. RefreshToken 없거나 유효하지 않으면 AccessToken 확인
@@ -97,12 +95,8 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
                 user -> {
                     String newAccessToken = jwtService.createAccessToken(user.getId());
                     jwtService.sendAccessToken(response, newAccessToken);
+                    response.setHeader("Authorization", "Bearer" + newAccessToken);
                     saveAuthentication(user);
-                    try {
-                        filterChain.doFilter(request, response);
-                    } catch (Exception e) {
-                        log.error("filterChain.doFilter 실패", e);
-                    }
                 },
                 () -> log.warn("유효하지 않은 refreshToken 요청")
         );
