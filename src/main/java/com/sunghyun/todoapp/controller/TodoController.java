@@ -5,10 +5,12 @@ import com.sunghyun.todoapp.Dto.TodoRecommendationDto;
 import com.sunghyun.todoapp.Dto.TodoRequestDto;
 
 import com.sunghyun.todoapp.Dto.TodoResponseDto;
+import com.sunghyun.todoapp.Entity.GeminiRecommendationDto;
 import com.sunghyun.todoapp.service.RecommendService;
 import com.sunghyun.todoapp.service.TodoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.Response;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
@@ -60,12 +62,19 @@ public class TodoController {
         DeleteTodoDto dto = todoService.deleteTodo(todoId, userId);
         return ResponseEntity.ok(dto);
     }
-    // 할 일 추천
-    @GetMapping("/api/user/todo/recommend")
-    public ResponseEntity<?> recommendTodo(@AuthenticationPrincipal UserDetails userDetails){
+    // gemini(할일) 기반으로 할일 추천
+    @GetMapping("/api/user/todo/recommendGemini")
+    public ResponseEntity<?> recommendGemini(@AuthenticationPrincipal UserDetails userDetails){
         String userId = userDetails.getUsername();
         String prompt = recommendService.makePrompt(userId);
         String todo = recommendService.getTodoRecommendation(prompt);
+        return ResponseEntity.ok(new GeminiRecommendationDto(todo));
+    }
+    // 자주 하는 일 기반 할일 추천
+    @GetMapping("/api/user/todo/recommend")
+    public ResponseEntity<?> recommend(@AuthenticationPrincipal UserDetails userDetails){
+        String userId = userDetails.getUsername();
+        List<String> todo = recommendService.getTopTodoPatterns(userId);
         return ResponseEntity.ok(new TodoRecommendationDto(todo));
     }
 
