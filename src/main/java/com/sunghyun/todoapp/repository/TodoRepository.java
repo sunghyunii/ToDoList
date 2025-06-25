@@ -1,5 +1,6 @@
 package com.sunghyun.todoapp.repository;
 
+import com.sunghyun.todoapp.Entity.Status;
 import com.sunghyun.todoapp.Entity.Todo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -17,4 +18,5 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
 
     @Query("SELECT t.content, COUNT(t) FROM Todo t WHERE t.user.id = :userId GROUP BY t.content ORDER BY COUNT(t) DESC")
     List<Object[]> findTopFrequentContentsByUser(@Param("userId") String userId);
+    List<Todo> findByIdAndStatusAndDate(String userId, Status status, LocalDate today);
 }

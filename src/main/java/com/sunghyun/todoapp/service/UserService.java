@@ -1,6 +1,7 @@
 package com.sunghyun.todoapp.service;
 
 import com.sunghyun.todoapp.Dto.CreateUserDto;
+import com.sunghyun.todoapp.Dto.DeleteUserDto;
 import com.sunghyun.todoapp.Dto.UpdateUserDto;
 import com.sunghyun.todoapp.Dto.UserResponseDto;
 import com.sunghyun.todoapp.Entity.User;
@@ -123,5 +124,11 @@ public class UserService {
         user.setIntroduction(userDto.getIntroduction());
         return new UserResponseDto(user);
     }
-
+    /**회원 정보 삭제*/
+    public DeleteUserDto deleteUserInfo(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(()-> new UsernameNotFoundException("사용자를 찾을 수 없습니다"));
+        userRepository.delete(user);
+        return new DeleteUserDto("탈퇴되었습니다.");
+    }
 }

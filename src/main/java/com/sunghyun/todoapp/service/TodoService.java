@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -85,6 +86,7 @@ public class TodoService {
         }
         return new TodoResponseDto(todo);
     }
+    //
     @Transactional
     public DeleteTodoDto deleteTodo(Long todoId, String userId) throws AccessDeniedException {
         Todo todo = todoRepository.findById(todoId)
@@ -94,5 +96,15 @@ public class TodoService {
         }
         todoRepository.deleteById(todoId);
         return new DeleteTodoDto(todoId, "할 일이 삭제되었습니다");
+    }
+
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    public List<Todo> getUnfinishedTodosDueToday(String userId) {
+        Status status = Status.TODO;
+        LocalDate today = LocalDate.now();
+        return todoRepository.findByIdAndStatusAndDate(userId, status,today);
     }
 }
