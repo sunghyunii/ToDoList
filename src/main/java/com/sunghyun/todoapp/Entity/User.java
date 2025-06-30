@@ -27,6 +27,9 @@ public class User {
     private Recommendation rec;
     @Enumerated(EnumType.STRING)
     private Role role = Role.USER;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "push_subscription_id")
+    private PushSubscription pushSubscription;
 
     /** jwt 토큰 추가 */
     @Column(length = 1000)

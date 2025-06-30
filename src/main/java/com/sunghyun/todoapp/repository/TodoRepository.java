@@ -18,5 +18,5 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
 
     @Query("SELECT t.content, COUNT(t) FROM Todo t WHERE t.user.id = :userId GROUP BY t.content ORDER BY COUNT(t) DESC")
     List<Object[]> findTopFrequentContentsByUser(@Param("userId") String userId);
-    List<Todo> findByIdAndStatusAndDate(String userId, Status status, LocalDate today);
+    List<Todo> findByUserIdAndStatusAndDate(String userId, Status status, LocalDate today);
 }

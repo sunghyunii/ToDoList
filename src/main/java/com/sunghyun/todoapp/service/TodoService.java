@@ -105,6 +105,6 @@ public class TodoService {
     public List<Todo> getUnfinishedTodosDueToday(String userId) {
         Status status = Status.TODO;
         LocalDate today = LocalDate.now();
-        return todoRepository.findByIdAndStatusAndDate(userId, status,today);
+        return todoRepository.findByUserIdAndStatusAndDate(userId, status,today);
     }
 }

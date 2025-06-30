@@ -37,6 +37,7 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
 	//== jwt 추가 ==//
 	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
@@ -45,6 +46,9 @@ dependencies {
 	testImplementation 'org.projectlombok:lombok'
 	implementation 'commons-codec:commons-codec:1.5'
 	implementation 'com.auth0:java-jwt:3.13.0'
+
+	//web push api
+	implementation 'nl.martijndwars:web-push:5.1.0'
 }
 
 tasks.named('test') {
