@@ -13,6 +13,6 @@ public class PushSubscription {
     private String endpoint; // 어디로
     private String p256dhKey; // 인증키
     private String authKey; //인증키
-    @OneToOne(mappedBy = "pushSubscription")
+    @OneToOne
     private User user;
 }

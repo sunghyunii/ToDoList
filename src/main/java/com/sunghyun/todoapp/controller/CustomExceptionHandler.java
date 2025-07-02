@@ -14,12 +14,12 @@ import java.nio.file.AccessDeniedException;
 @ControllerAdvice
 public class CustomExceptionHandler {
     @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<ErrorResponse> handleEmailAlreadyExistsException(IllegalStateException e){
+    public ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException e){
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(new ErrorResponse(e.getMessage()));
     }
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidPasswordException(IllegalArgumentException e){
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e){
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
                 new ErrorResponse(e.getMessage()));
     }

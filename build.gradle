@@ -49,6 +49,7 @@ dependencies {
 
 	//web push api
 	implementation 'nl.martijndwars:web-push:5.1.0'
+	implementation 'org.bouncycastle:bcprov-jdk15on:1.70'
 }
 
 tasks.named('test') {
