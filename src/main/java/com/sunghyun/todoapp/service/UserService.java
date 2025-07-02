@@ -32,30 +32,15 @@ public class UserService {
         user.setImage(userDto.getImage());
         user.setIntroduction(userDto.getIntroduction());
 
-        validateRequiredFields(user);
         validateUser(user);
 
         userRepository.save(user);
         return new UserResponseDto(user);
     }
-    private void validateRequiredFields(User user){
-        if(user.getId() == null || user.getId().isEmpty()){
-            throw new IllegalArgumentException("id 는 필수 값입니다. ");
-        }
-        if(user.getPassword() == null || user.getPassword().isEmpty()){
-            throw new IllegalArgumentException("password 는 필수 값입니다. ");
-        }
-        if(user.getEmail() == null || user.getEmail().isEmpty()){
-            throw new IllegalArgumentException("email 은 필수 값입니다. ");
-        }
-        if(user.getNickname() == null || user.getNickname().isEmpty()){
-            throw new IllegalArgumentException("nickname 은 필수 값입니다. ");
-        }
-    }
+
     private void validateUser(User user){
         validateId(user.getId());
         validateEmail(user.getEmail());
-        validatePassword(user.getPassword());
         validateNickname(user.getNickname());
     }
     // ID 검증
@@ -76,12 +61,6 @@ public class UserService {
         }
     }
 
-    // 비밀번호 유효성 검사
-    private void validatePassword(String password){
-        if(password.length() < 8){
-            throw new IllegalArgumentException("비밀번호는 최소 8자 이상이어야 합니다.");
-        }
-    }
     @Transactional
     public void updateRefreshToken(String userId, String refreshToken){
         User user = userRepository.findById(userId)
@@ -99,12 +78,6 @@ public class UserService {
     /**회원정보 수정*/
     @Transactional
     public UserResponseDto updateUserInfo(String userId, UpdateUserDto userDto) {
-        if(userDto.getEmail() == null || userDto.getEmail().isEmpty()){
-            throw new IllegalArgumentException("email 은 필수 값입니다. ");
-        }
-        if(userDto.getNickname() == null || userDto.getNickname().isEmpty()){
-            throw new IllegalArgumentException("nickname 은 필수 값입니다. ");
-        }
         // 이메일 중복 확인
         if(userRepository.existsByEmailAndIdNot(userDto.getEmail(), userId)){
                 throw new IllegalStateException("이미 존재하는 이메일입니다");

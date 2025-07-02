@@ -23,9 +23,6 @@ public class UserController {
     }
     @PostMapping("/api/register")
     public ResponseEntity<?> create(@RequestBody @Valid CreateUserDto userDto){
-        if(userDto.getId() == null){
-            return ResponseEntity.badRequest().body("Id 값이 필요합니다");
-        }
         userService.join(userDto);
         return ResponseEntity.ok(userDto);
     }
