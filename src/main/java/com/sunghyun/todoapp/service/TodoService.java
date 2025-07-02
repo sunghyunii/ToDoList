@@ -34,9 +34,6 @@ public class TodoService {
    // 할 일 추가
     @Transactional
     public TodoResponseDto createTodo(String userId, TodoRequestDto dto) {
-        if (dto.getContent() == null || dto.getContent().trim().isEmpty()) {
-            throw new IllegalArgumentException("내용은 필수 값입니다");
-        }
         Todo todo = new Todo();
         todo.setContent(dto.getContent());
         todo.setStatus(Status.TODO);
@@ -70,9 +67,6 @@ public class TodoService {
                 .orElseThrow(() -> new EntityNotFoundException("해당 할 일이 존재하지 않습니다"));
         if(!todo.isOwnedBy(userId)){
             throw new AccessDeniedException("수정 권한이 없습니다");
-        }
-        if(dto.getContent() == null || dto.getContent().trim().isEmpty()){
-            throw new IllegalArgumentException("할 일을 입력하세요.");
         }
         todo.setContent(dto.getContent());
         todo.setStatus(dto.getStatus());
