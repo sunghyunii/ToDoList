@@ -110,7 +110,7 @@ public class JwtServiceImpl implements JwtService {
         String header = request.getHeader("Authorization");
         System.out.println("== 클라이언트가 보낸 Authorization-refresh: " + header);
 
-        return Optional.ofNullable(request.getHeader(accessHeader)).filter(
+        return Optional.ofNullable(header).filter(
                 accessToken -> accessToken.startsWith(BEARER)
         ).map(accessToken -> accessToken.replace(BEARER, "")); // "Bearer" 접두사 제거
     }
@@ -119,7 +119,8 @@ public class JwtServiceImpl implements JwtService {
     public Optional<String> extractRefreshToken(HttpServletRequest request) {
         String header = request.getHeader("Authorization-Refresh");
         System.out.println("Authorization-Refresh 헤더 값: " + header);
-        return Optional.ofNullable(request.getHeader(header)).filter(
+
+        return Optional.ofNullable(header).filter(
                 refreshToken -> refreshToken.startsWith(BEARER)
         ).map(refreshToken -> refreshToken.replace(BEARER, "")); // "Bearer" 접두사 제거
     }

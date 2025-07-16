@@ -56,8 +56,7 @@ public class RecommendService {
         for(String task : frequentTodos){
             prompt.append("- ").append(task).append("\n");
         }
-        prompt.append("\n위의 할 일은 자주한 할 일이고 이 것과 오늘의 날씨, 시간대에 적합한 활동인지, 평일인지 주말인지에 따라 추천을 다르게 할 일을 3개 제안해줘");
-        prompt.append("실행 가능한 표현으로 작성하고 너무 겹치지 않게 해줘");
+        prompt.append("\n위의 할 일은 자주한 할 일이고 이 것과 오늘의 날씨, 지금 시간대, 날짜를 참고해서 할 일을 3개 제안해줘");
         return prompt.toString();
     }
 }

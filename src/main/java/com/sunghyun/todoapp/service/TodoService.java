@@ -36,7 +36,10 @@ public class TodoService {
     public TodoResponseDto createTodo(String userId, TodoRequestDto dto) {
         Todo todo = new Todo();
         todo.setContent(dto.getContent());
-        todo.setStatus(Status.TODO);
+        if(dto.getStatus() == null){
+            dto.setStatus(Status.TODO);
+        }
+        todo.setStatus(dto.getStatus());
         todo.setDate(dto.getDate());
         if(dto.getCategory() != null){
             Category category = categoryRepository.findById(dto.getCategory().getId())

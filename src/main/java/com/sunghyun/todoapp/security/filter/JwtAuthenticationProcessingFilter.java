@@ -21,6 +21,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -32,14 +33,14 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserRepository userRepository;
     private GrantedAuthoritiesMapper authoritiesMapper = new NullAuthoritiesMapper();
-    private final String NO_CHECK_URL = "/user/login";
+    private final List<String> NO_CHECK_URL = List.of("/api/login","/api/register");
 
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         System.out.println("jwtAuthenticationProcessingFilter 실행됨");
         // / 1. login 경로로 오는 요청은 이 필터를 건너뛰고 다음 필터로
-        if(request.getRequestURI().equals(NO_CHECK_URL)){
+        if(NO_CHECK_URL.contains(request.getRequestURI())){
             filterChain.doFilter(request, response);
             return;
         }
@@ -57,7 +58,7 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
                 .filter(jwtService::isTokenValid)
                 .orElse(null);
         // 2-1. refresh Token 있으면 Access Token 발급
-        if(refreshToken != null){
+        if(refreshToken != null && isReissueRequest(request)){
             checkRefreshTokenAndReIssueAccessToken(response, refreshToken, request, filterChain);
             return;
         }
@@ -95,11 +96,13 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
                 user -> {
                     String newAccessToken = jwtService.createAccessToken(user.getId());
                     jwtService.sendAccessToken(response, newAccessToken);
-                    response.setHeader("Authorization", "Bearer" + newAccessToken);
                     saveAuthentication(user);
                 },
                 () -> log.warn("유효하지 않은 refreshToken 요청")
         );
 
+    }
+    private boolean isReissueRequest(HttpServletRequest request){
+        return "/api/user/token".equals(request.getRequestURI());
     }
 }

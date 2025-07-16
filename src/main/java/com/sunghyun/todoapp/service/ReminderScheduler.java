@@ -15,7 +15,7 @@ public class ReminderScheduler {
     private final NotificationService notificationService;
 
     // 매일 오전 9시에 실행
-    @Scheduled(cron="0 0 9 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron="0 0 18 * * *", zone = "Asia/Seoul")
     public void sendUnfinishedTaskReminder(){
         List<User> users = todoService.getAllUsers();
         for(User user : users){

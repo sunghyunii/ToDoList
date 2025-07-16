@@ -21,7 +21,5 @@ public class LoginFailureHandler extends SimpleUrlAuthenticationFailureHandler {
         PrintWriter writer = response.getWriter();
         writer.write("{\"message\": \"이메일 또는 비밀번호가 올바르지 않습니다 \"}");
         writer.flush();
-        //response.getWriter().write("fail");
-        //log.info("로그인 실패");
     }
 }

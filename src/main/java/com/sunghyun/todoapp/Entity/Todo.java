@@ -24,6 +24,7 @@ public class Todo {
     private Category category;
 
     public boolean isOwnedBy(String userId) {
+
         return this.user != null && this.user.getId().equals(userId);
     }
 }
