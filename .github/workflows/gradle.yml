@@ -19,7 +19,9 @@ jobs:
         distribution: 'temurin'
         
     - name: Gradle 빌드
-      run: ./gradlew clean build 
+      run: |
+        chmod +x ./gradlew
+        ./gradlew clean build 
 
     - name: ZIP 파일 생성
       run: |
