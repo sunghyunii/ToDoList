@@ -28,7 +28,7 @@ jobs:
         zip -r deploy.zip deploy
 
     - name: S3 에 업로드
-      uses: jakejarvis/s3=sync-action@v0.5.1 #GitHub Actions 용 플러그인
+      uses: jakejarvis/s3=sync-action@v0.6.0 #GitHub Actions 용 플러그인
       with:
         args: --acl public-read --follow-symlinks #S3 업로드 시 옵션 설정(업로드한 파일 공개, 심볼릭 링크가 있으면 실제 파일 따라가서 업로드) 
       env: #AWS 키를 넘겨줌
@@ -38,7 +38,7 @@ jobs:
         SOURCE_DIR: './build/libs' #어떤 파일을 업로드할지 경로 지정
         DEST_DIR: 's3-folder' #S3 안에서 저장할 위치
     - name: CodeDeploy 실행
-      uses: webfactory/create-aws-codedeploy-deployment@v1
+      uses: aws-actions/aws-codedeploy-deploy@v1
       with:
         application-name: 'my-codedeploy-app'
         deployment-group: 'my-codedeploy-deployment-group'
