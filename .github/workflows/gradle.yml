@@ -28,20 +28,29 @@ jobs:
         zip -r deploy.zip deploy
 
     - name: S3 에 업로드
-      uses: jakejarvis/s3=sync-action@v0.6.0 #GitHub Actions 용 플러그인
-      with:
-        args: --acl public-read --follow-symlinks #S3 업로드 시 옵션 설정(업로드한 파일 공개, 심볼릭 링크가 있으면 실제 파일 따라가서 업로드) 
+      run: |
+        aws s3 sync  ./build s3://todoapp-github-actions-s3-bucket/deploy-bundle.zip      
       env: #AWS 키를 넘겨줌
         AWS_S3_BUCKET: 'todoapp-github-actions-s3-bucket'
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        SOURCE_DIR: './build/libs' #어떤 파일을 업로드할지 경로 지정
-        DEST_DIR: 's3-folder' #S3 안에서 저장할 위치
-    - name: CodeDeploy 실행
-      uses: aws-actions/aws-codedeploy-deploy@v1
+        AWS_DEFAULT_REGION: ap-northeast-2
+        
+    - name: aws 자격 증명 설정 
+      uses: aws-actions/configure-aws-credentials@v2
       with:
-        application-name: 'my-codedeploy-app'
-        deployment-group: 'my-codedeploy-deployment-group'
-        deployment-config: 'CodeDeployDefault.AllAtOnce'
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ap-northeast-2
+        
+    - name: CodeDeploy 실행
+      run: |
+        aws deploy create-deployment \
+          --application-name my-codedeploy-app \
+          --deployment-group-name my-codedeploy-deployment-group \
+          --s3-location bucket=todoapp-github-actions-s3-bucket,key=deploy-bundle.zip,bundleType=zip
+          --deployment-config-name CodeDeployDefault.AllAtOnce \
+          --file-exists-behavior OVERWRITE
+      
 
    
