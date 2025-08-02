@@ -44,8 +44,8 @@ jobs:
       run: |
         aws deploy create-deployment \
           --application-name my-codedeploy-app \
-          --deployment-group-name my-codedeploy-deployment-group \
-          --s3-location bucket=todoapp-github-actions-s3-bucket,key=deploy-bundle.zip,bundleType=zip
+          --deployment-group-name my-codedploy-deployment-group \
+          --s3-location bucket=todoapp-github-actions-s3-bucket,key=deploy.zip,bundleType=zip
           --deployment-config-name CodeDeployDefault.AllAtOnce \
           --file-exists-behavior OVERWRITE
       
