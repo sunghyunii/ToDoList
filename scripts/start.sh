@@ -1,2 +1,3 @@
-echo "> 앱 실행"
-nohup java -jar /home/ubuntu/app/build/todoapp-0.0.1-SNAPSHOT.jar > /home/ubuntu/app/nohup.out 2>&1 &
+echo "> 애플리케이션 실행"
+JAR_NAME=$(ls /home/ubuntu/app/build/*.jar | tail -n 1)
+nohup java -jar "$JAR_NAME" > /home/ubuntu/app/nohup.out 2>&1 &
