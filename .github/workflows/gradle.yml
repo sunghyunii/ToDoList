@@ -22,6 +22,7 @@ jobs:
       run: |
         chmod +x ./gradlew
         ./gradlew clean build 
+        ls -al build/libs
 
     - name: ZIP 파일 생성
       run: zip -r deploy.zip . -x "*.git*" "*.DS_Store" 
