@@ -25,7 +25,12 @@ jobs:
         ls -al build/libs
 
     - name: ZIP 파일 생성
-      run: zip -r deploy.zip . -x "*.git*" "*.DS_Store" 
+      run: |
+        mkdir -p deploy
+        cp -r build/libs deploy/
+        cp -r scripts deploy/
+        cp appspec.yml deploy/
+        cd deploy && zip -r ../deploy.zip .
         
     - name: aws 자격 증명 설정 
       uses: aws-actions/configure-aws-credentials@v2
