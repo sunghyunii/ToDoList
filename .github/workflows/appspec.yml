@@ -24,10 +24,7 @@ jobs:
         ./gradlew clean build 
 
     - name: ZIP 파일 생성
-      run: |
-        mkdir -p deploy
-        cp ./build/libs/*.jar ./deploy/
-        zip -r deploy.zip ./build
+      run: zip -r deploy.zip . -x "*.git*" "*.DS_Store" 
         
     - name: aws 자격 증명 설정 
       uses: aws-actions/configure-aws-credentials@v2
