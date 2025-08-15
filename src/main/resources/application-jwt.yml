@@ -1,0 +1,9 @@
+jwt:
+  secret: mytestsecretkey1234567890
+  access:
+    expiration: 600
+    header: Authorization
+
+  refresh:
+    expiration: 1209600
+    header: Authorization-refresh

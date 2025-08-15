@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: todoapp
+  datasource:
+    url: jdbc:mysql://todo-prod-db.cps44qkmkkll.ap-southeast-2.rds.amazonaws.com:3306/todoapp?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: sunghyun
+    password: 33699xyz
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false #로그 최소화
+    properties:
+      hibernate:
+        format_sql: false
+
+security:
+  ignored: false #운영에서는 시큐리티 무시 안함
+
+
+push:
+  vapid:
+    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEVjlIQDxqJ0nSzd2mXCLGt6Z7c42oEF8iKNFWf7N6b8Vx8HHrdLD-wKaZasb7wLf3bgECthAJJ1nOgpk0miQWQg
+    private-key: MEECAQAwEwYHKoZIzj0CAQYIKoZIzj0DAQcEJzAlAgEBBCArQtyn4vMqstREzAztqPYsOAXeo9O_kKjshgvKUGFQnw
+    subject: mailto:amypark0@naver.com
